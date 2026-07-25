@@ -76,17 +76,7 @@ h2,
 .login-hero {
   position: relative;
   overflow: hidden;
-  border-radius: 1.5rem;
   background: var(--brand);
-  box-shadow: var(--shadow);
-}
-
-.login-hero::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(105deg, rgba(26, 51, 46, 0.15) 0%, transparent 45%, rgba(26, 51, 46, 0.35) 100%);
-  pointer-events: none;
 }
 
 .brand-mark {

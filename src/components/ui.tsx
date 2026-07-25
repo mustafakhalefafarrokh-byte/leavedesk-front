@@ -98,12 +98,12 @@ export function Textarea({ className = '', ...props }: TextareaHTMLAttributes<HT
 }
 
 export function Label({ children }: { children: ReactNode }) {
-  return <label className="mb-1.5 block text-sm font-medium text-[var(--ink)]">{children}</label>;
+  return <label className="mb-1.5 block w-full text-start text-sm font-medium text-[var(--ink)]">{children}</label>;
 }
 
 export function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div>
+    <div className="w-full text-start">
       <Label>{label}</Label>
       {children}
     </div>
