@@ -15,7 +15,7 @@ export function EmployeeDashboard() {
         const data = await api<{ balances: Balance[] }>('/api/balances/me');
         setBalances(data.balances);
       } catch (err) {
-        setError(err instanceof ApiError ? err.message : 'Failed to load balances');
+        setError(err instanceof ApiError ? err.message : 'فشل تحميل الأرصدة');
       } finally {
         setLoading(false);
       }
@@ -27,20 +27,20 @@ export function EmployeeDashboard() {
   return (
     <div>
       <PageHeader
-        title="My leave balances"
-        subtitle="Remaining days update only after an admin approves a request."
+        title="أرصدة إجازاتي"
+        subtitle="يتحدّث المتبقي فقط بعد اعتماد الطلب من المسؤول."
         action={
           <Link
             to="/employee/requests/new"
             className="inline-flex rounded-xl bg-[var(--brand)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[var(--brand-deep)]"
           >
-            Request leave
+            طلب إجازة
           </Link>
         }
       />
       {error ? <Alert>{error}</Alert> : null}
       {balances.length === 0 ? (
-        <EmptyState title="No balances yet" body="Ask your admin to configure leave types for your account." />
+        <EmptyState title="لا توجد أرصدة" body="اطلب من مسؤولك تخصيص أنواع الإجازات لحسابك." />
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {balances.map((b, i) => {
@@ -50,15 +50,15 @@ export function EmployeeDashboard() {
                 <p className="font-semibold">{b.leaveTypeName}</p>
                 <div className="mt-4 grid grid-cols-3 gap-2 text-sm">
                   <div>
-                    <p className="text-[var(--muted)]">Total</p>
+                    <p className="text-[var(--muted)]">الإجمالي</p>
                     <p className="text-2xl font-semibold">{b.totalDays}</p>
                   </div>
                   <div>
-                    <p className="text-[var(--muted)]">Used</p>
+                    <p className="text-[var(--muted)]">المستخدم</p>
                     <p className="text-2xl font-semibold">{b.usedDays}</p>
                   </div>
                   <div>
-                    <p className="text-[var(--muted)]">Remaining</p>
+                    <p className="text-[var(--muted)]">المتبقي</p>
                     <p className="text-2xl font-semibold text-[var(--brand-deep)]">{b.remainingDays}</p>
                   </div>
                 </div>

@@ -15,7 +15,7 @@ export function MyRequestsPage() {
       const data = await api<{ leaveRequests: LeaveRequest[] }>('/api/leave-requests');
       setRequests(data.leaveRequests);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to load requests');
+      setError(err instanceof ApiError ? err.message : 'فشل تحميل الطلبات');
     } finally {
       setLoading(false);
     }
@@ -26,12 +26,12 @@ export function MyRequestsPage() {
   }, []);
 
   async function cancel(id: string) {
-    if (!confirm('Cancel this pending request?')) return;
+    if (!confirm('إلغاء هذا الطلب المعلّق؟')) return;
     try {
       await api(`/api/leave-requests/${id}/cancel`, { method: 'POST' });
       await load();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Cancel failed');
+      setError(err instanceof ApiError ? err.message : 'فشل الإلغاء');
     }
   }
 
@@ -40,31 +40,35 @@ export function MyRequestsPage() {
   return (
     <div>
       <PageHeader
-        title="My leave requests"
-        subtitle="Track status and cancel pending requests before they are reviewed."
+        title="طلباتي"
+        subtitle="تابع الحالة ويمكنك إلغاء الطلبات المعلّقة قبل المراجعة."
         action={
           <Link
             to="/employee/requests/new"
             className="inline-flex rounded-xl bg-[var(--brand)] px-4 py-2.5 text-sm font-semibold text-white"
           >
-            New request
+            طلب جديد
           </Link>
         }
       />
-      {error ? <div className="mb-4"><Alert>{error}</Alert></div> : null}
+      {error ? (
+        <div className="mb-4">
+          <Alert>{error}</Alert>
+        </div>
+      ) : null}
 
       {requests.length === 0 ? (
-        <EmptyState title="No requests yet" body="Submit your first leave request when you need time off." />
+        <EmptyState title="لا توجد طلبات بعد" body="قدّم أول طلب إجازة عند الحاجة." />
       ) : (
         <div className="overflow-x-auto rounded-2xl border border-[var(--line)] bg-white shadow-[var(--shadow)]">
-          <table className="min-w-full text-left text-sm">
+          <table className="min-w-full text-right text-sm">
             <thead className="border-b border-[var(--line)] bg-[var(--surface)] text-[var(--muted)]">
               <tr>
-                <th className="px-4 py-3 font-medium">Type</th>
-                <th className="px-4 py-3 font-medium">Dates</th>
-                <th className="px-4 py-3 font-medium">Days</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium">Actions</th>
+                <th className="px-4 py-3 font-medium">النوع</th>
+                <th className="px-4 py-3 font-medium">التواريخ</th>
+                <th className="px-4 py-3 font-medium">الأيام</th>
+                <th className="px-4 py-3 font-medium">الحالة</th>
+                <th className="px-4 py-3 font-medium">إجراءات</th>
               </tr>
             </thead>
             <tbody>
@@ -72,10 +76,10 @@ export function MyRequestsPage() {
                 <tr key={r.id} className="border-b border-[var(--line)] last:border-0 align-top">
                   <td className="px-4 py-3 font-medium">{r.leaveTypeName}</td>
                   <td className="px-4 py-3">
-                    {r.startDate} → {r.endDate}
+                    {r.startDate} ← {r.endDate}
                     {r.reason ? <p className="mt-1 text-xs text-[var(--muted)]">{r.reason}</p> : null}
                     {r.rejectionReason ? (
-                      <p className="mt-1 text-xs text-red-700">Rejection: {r.rejectionReason}</p>
+                      <p className="mt-1 text-xs text-red-700">سبب الرفض: {r.rejectionReason}</p>
                     ) : null}
                   </td>
                   <td className="px-4 py-3">{r.requestedDays}</td>
@@ -85,7 +89,7 @@ export function MyRequestsPage() {
                   <td className="px-4 py-3">
                     {r.status === 'pending' ? (
                       <Button variant="ghost" onClick={() => void cancel(r.id)}>
-                        Cancel
+                        إلغاء
                       </Button>
                     ) : (
                       <span className="text-xs text-[var(--muted)]">—</span>

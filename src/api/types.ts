@@ -1,4 +1,4 @@
-export type Role = 'admin' | 'employee';
+export type Role = 'manager' | 'branch_head' | 'employee';
 
 export type LeaveRequestStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
 
@@ -9,6 +9,7 @@ export type User = {
   role: Role;
   isActive?: boolean;
   mustChangePassword: boolean;
+  managedById?: string | null;
 };
 
 export type LeaveType = {
@@ -46,6 +47,8 @@ export type LeaveRequest = {
   employeeEmail?: string;
   leaveTypeName?: string;
   reviewerName?: string | null;
+  managedById?: string | null;
+  canReview?: boolean;
 };
 
 export type Employee = {
@@ -55,7 +58,13 @@ export type Employee = {
   role: Role;
   isActive: boolean;
   mustChangePassword: boolean;
+  managedById?: string | null;
   createdAt: string;
   updatedAt: string;
   balances?: Balance[];
+  leaveTypeIds?: string[];
+};
+
+export type BranchHead = User & {
+  employeeCount?: number;
 };

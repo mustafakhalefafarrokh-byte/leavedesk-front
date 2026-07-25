@@ -6,6 +6,8 @@ import type {
   SelectHTMLAttributes,
   TextareaHTMLAttributes,
 } from 'react';
+import type { LeaveRequestStatus } from '../api/types';
+import { statusLabel } from '../lib/labels';
 
 export function PageHeader({
   title,
@@ -123,16 +125,17 @@ export function Alert({
   return <div className={`rounded-xl border px-3.5 py-3 text-sm ${styles}`}>{children}</div>;
 }
 
-export function StatusBadge({ status }: { status: string }) {
+export function StatusBadge({ status }: { status: LeaveRequestStatus | string }) {
   const map: Record<string, string> = {
     pending: 'bg-amber-100 text-amber-900',
     approved: 'bg-emerald-100 text-emerald-900',
     rejected: 'bg-red-100 text-red-900',
     cancelled: 'bg-slate-100 text-slate-700',
   };
+  const label = statusLabel[status as LeaveRequestStatus] ?? status;
   return (
-    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${map[status] ?? 'bg-slate-100'}`}>
-      {status}
+    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${map[status] ?? 'bg-slate-100'}`}>
+      {label}
     </span>
   );
 }
@@ -174,7 +177,7 @@ export function Modal({
       >
         <div className="mb-4 flex items-center justify-between gap-3">
           <h2 className="text-xl">{title}</h2>
-          <Button variant="ghost" type="button" onClick={onClose} aria-label="Close">
+          <Button variant="ghost" type="button" onClick={onClose} aria-label="إغلاق">
             ✕
           </Button>
         </div>

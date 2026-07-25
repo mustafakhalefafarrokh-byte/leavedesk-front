@@ -3,6 +3,7 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { api, ApiError } from '../../api/client';
 import type { User } from '../../api/types';
 import { useAuth } from '../../context/AuthContext';
+import { homePathForRole } from '../../lib/labels';
 import { Alert, Button, Card, Field, Input, PageHeader } from '../../components/ui';
 
 export function ChangePasswordPage() {
@@ -25,9 +26,9 @@ export function ChangePasswordPage() {
         body: JSON.stringify({ currentPassword, newPassword }),
       });
       setUser(data.user);
-      navigate(data.user.role === 'admin' ? '/admin' : '/employee');
+      navigate(homePathForRole(data.user.role));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Could not change password');
+      setError(err instanceof ApiError ? err.message : 'تعذّر تغيير كلمة المرور');
     } finally {
       setSubmitting(false);
     }
@@ -35,13 +36,13 @@ export function ChangePasswordPage() {
 
   return (
     <div className="mx-auto max-w-lg px-4 py-10">
-      <PageHeader title="Update password" subtitle="You must set a new password before continuing." />
+      <PageHeader title="تحديث كلمة المرور" subtitle="يجب تعيين كلمة مرور جديدة قبل المتابعة." />
       <Card>
         <form className="space-y-4" onSubmit={onSubmit}>
-          <Field label="Current password">
+          <Field label="كلمة المرور الحالية">
             <Input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required />
           </Field>
-          <Field label="New password">
+          <Field label="كلمة المرور الجديدة">
             <Input
               type="password"
               value={newPassword}
@@ -52,7 +53,7 @@ export function ChangePasswordPage() {
           </Field>
           {error ? <Alert>{error}</Alert> : null}
           <Button type="submit" disabled={submitting}>
-            {submitting ? 'Saving…' : 'Save password'}
+            {submitting ? 'جارٍ الحفظ…' : 'حفظ كلمة المرور'}
           </Button>
         </form>
       </Card>

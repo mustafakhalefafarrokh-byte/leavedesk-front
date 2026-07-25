@@ -20,7 +20,7 @@ export function LeaveTypesPage() {
       const data = await api<{ leaveTypes: LeaveType[] }>('/api/leave-types');
       setTypes(data.leaveTypes);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to load leave types');
+      setError(err instanceof ApiError ? err.message : 'فشل تحميل أنواع الإجازات');
     } finally {
       setLoading(false);
     }
@@ -54,18 +54,18 @@ export function LeaveTypesPage() {
           method: 'PATCH',
           body: JSON.stringify({ typeName, defaultDays }),
         });
-        setSuccess('Leave type updated');
+        setSuccess('تم تحديث نوع الإجازة');
       } else {
         await api('/api/leave-types', {
           method: 'POST',
           body: JSON.stringify({ typeName, defaultDays }),
         });
-        setSuccess('Leave type created — balances added for all employees');
+        setSuccess('تم إنشاء نوع الإجازة — خصّصه للموظفين عند الإضافة أو التعديل');
       }
       setOpen(false);
       await load();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Save failed');
+      setError(err instanceof ApiError ? err.message : 'فشل الحفظ');
     }
   }
 
@@ -74,17 +74,17 @@ export function LeaveTypesPage() {
     try {
       if (lt.isActive) {
         await api(`/api/leave-types/${lt.id}`, { method: 'DELETE' });
-        setSuccess(lt.isActive ? 'Leave type disabled (kept for history)' : 'Updated');
+        setSuccess('تم تعطيل نوع الإجازة');
       } else {
         await api(`/api/leave-types/${lt.id}`, {
           method: 'PATCH',
           body: JSON.stringify({ isActive: true }),
         });
-        setSuccess('Leave type reactivated');
+        setSuccess('تم تفعيل نوع الإجازة');
       }
       await load();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Update failed');
+      setError(err instanceof ApiError ? err.message : 'فشل التحديث');
     }
   }
 
@@ -93,24 +93,32 @@ export function LeaveTypesPage() {
   return (
     <div>
       <PageHeader
-        title="Leave types"
-        subtitle="Define policies and default annual balances. Editing default days does not rewrite existing balances."
-        action={<Button onClick={openCreate}>Add leave type</Button>}
+        title="أنواع الإجازات"
+        subtitle="يُنشئها المدير فقط. لا تُمنح تلقائياً للموظفين — تُخصَّص عند إضافة الموظف."
+        action={<Button onClick={openCreate}>إضافة نوع</Button>}
       />
-      {error ? <div className="mb-4"><Alert>{error}</Alert></div> : null}
-      {success ? <div className="mb-4"><Alert tone="success">{success}</Alert></div> : null}
+      {error ? (
+        <div className="mb-4">
+          <Alert>{error}</Alert>
+        </div>
+      ) : null}
+      {success ? (
+        <div className="mb-4">
+          <Alert tone="success">{success}</Alert>
+        </div>
+      ) : null}
 
       {types.length === 0 ? (
-        <EmptyState title="No leave types yet" body="Create Annual, Sick, or custom leave categories." />
+        <EmptyState title="لا توجد أنواع بعد" body="أنشئ أنواعاً مثل الإجازة السنوية أو المرضية." />
       ) : (
         <div className="overflow-x-auto rounded-2xl border border-[var(--line)] bg-white shadow-[var(--shadow)]">
-          <table className="min-w-full text-left text-sm">
+          <table className="min-w-full text-right text-sm">
             <thead className="border-b border-[var(--line)] bg-[var(--surface)] text-[var(--muted)]">
               <tr>
-                <th className="px-4 py-3 font-medium">Name</th>
-                <th className="px-4 py-3 font-medium">Default days</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium">Actions</th>
+                <th className="px-4 py-3 font-medium">الاسم</th>
+                <th className="px-4 py-3 font-medium">الأيام الافتراضية</th>
+                <th className="px-4 py-3 font-medium">الحالة</th>
+                <th className="px-4 py-3 font-medium">إجراءات</th>
               </tr>
             </thead>
             <tbody>
@@ -118,14 +126,14 @@ export function LeaveTypesPage() {
                 <tr key={lt.id} className="border-b border-[var(--line)] last:border-0">
                   <td className="px-4 py-3 font-medium">{lt.typeName}</td>
                   <td className="px-4 py-3">{lt.defaultDays}</td>
-                  <td className="px-4 py-3">{lt.isActive ? 'Active' : 'Disabled'}</td>
+                  <td className="px-4 py-3">{lt.isActive ? 'نشط' : 'معطّل'}</td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-2">
                       <Button variant="secondary" onClick={() => openEdit(lt)}>
-                        Edit
+                        تعديل
                       </Button>
                       <Button variant="ghost" onClick={() => void toggleActive(lt)}>
-                        {lt.isActive ? 'Disable' : 'Enable'}
+                        {lt.isActive ? 'تعطيل' : 'تفعيل'}
                       </Button>
                     </div>
                   </td>
@@ -136,12 +144,12 @@ export function LeaveTypesPage() {
         </div>
       )}
 
-      <Modal open={open} title={editing ? 'Edit leave type' : 'New leave type'} onClose={() => setOpen(false)}>
+      <Modal open={open} title={editing ? 'تعديل نوع الإجازة' : 'نوع إجازة جديد'} onClose={() => setOpen(false)}>
         <form className="space-y-4" onSubmit={onSubmit}>
-          <Field label="Name">
+          <Field label="الاسم">
             <Input value={typeName} onChange={(e) => setTypeName(e.target.value)} required />
           </Field>
-          <Field label="Default days">
+          <Field label="الأيام الافتراضية">
             <Input
               type="number"
               min={0}
@@ -153,9 +161,9 @@ export function LeaveTypesPage() {
           </Field>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
-              Cancel
+              إلغاء
             </Button>
-            <Button type="submit">Save</Button>
+            <Button type="submit">حفظ</Button>
           </div>
         </form>
       </Modal>

@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, ApiError } from '../../api/client';
-import type { Balance, LeaveType } from '../../api/types';
+import type { Balance } from '../../api/types';
 import { Alert, Button, Card, Field, Input, PageHeader, Select, Textarea } from '../../components/ui';
 import { calculateLeaveDays, todayDateInputValue } from '../../lib/leaveDays';
 
 export function NewRequestPage() {
   const navigate = useNavigate();
-  const [types, setTypes] = useState<LeaveType[]>([]);
   const [balances, setBalances] = useState<Balance[]>([]);
   const [leaveTypeId, setLeaveTypeId] = useState('');
   const [startDate, setStartDate] = useState(todayDateInputValue());
@@ -19,15 +18,11 @@ export function NewRequestPage() {
   useEffect(() => {
     void (async () => {
       try {
-        const [t, b] = await Promise.all([
-          api<{ leaveTypes: LeaveType[] }>('/api/leave-types/active'),
-          api<{ balances: Balance[] }>('/api/balances/me'),
-        ]);
-        setTypes(t.leaveTypes);
+        const b = await api<{ balances: Balance[] }>('/api/balances/me');
         setBalances(b.balances);
-        if (t.leaveTypes[0]) setLeaveTypeId(t.leaveTypes[0].id);
+        if (b.balances[0]) setLeaveTypeId(b.balances[0].leaveTypeId);
       } catch (err) {
-        setError(err instanceof ApiError ? err.message : 'Failed to load form data');
+        setError(err instanceof ApiError ? err.message : 'فشل تحميل البيانات');
       }
     })();
   }, []);
@@ -51,7 +46,7 @@ export function NewRequestPage() {
       });
       navigate('/employee/requests');
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Could not submit request');
+      setError(err instanceof ApiError ? err.message : 'تعذّر إرسال الطلب');
     } finally {
       setSubmitting(false);
     }
@@ -60,49 +55,65 @@ export function NewRequestPage() {
   return (
     <div>
       <PageHeader
-        title="New leave request"
-        subtitle="Working days are calculated automatically. Weekends are excluded."
+        title="طلب إجازة جديد"
+        subtitle="تُحسب أيام العمل تلقائياً. تظهر فقط الأنواع المخصصة لك."
       />
       <Card className="max-w-xl">
-        <form className="space-y-4" onSubmit={onSubmit}>
-          <Field label="Leave type">
-            <Select value={leaveTypeId} onChange={(e) => setLeaveTypeId(e.target.value)} required>
-              {types.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.typeName}
-                </option>
-              ))}
-            </Select>
-          </Field>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Start date">
-              <Input type="date" value={startDate} min={todayDateInputValue()} onChange={(e) => setStartDate(e.target.value)} required />
+        {balances.length === 0 ? (
+          <Alert>لا توجد أنواع إجازات مخصصة لحسابك. تواصل مع مسؤولك.</Alert>
+        ) : (
+          <form className="space-y-4" onSubmit={onSubmit}>
+            <Field label="نوع الإجازة">
+              <Select value={leaveTypeId} onChange={(e) => setLeaveTypeId(e.target.value)} required>
+                {balances.map((t) => (
+                  <option key={t.leaveTypeId} value={t.leaveTypeId}>
+                    {t.leaveTypeName}
+                  </option>
+                ))}
+              </Select>
             </Field>
-            <Field label="End date">
-              <Input type="date" value={endDate} min={startDate || todayDateInputValue()} onChange={(e) => setEndDate(e.target.value)} required />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="من تاريخ">
+                <Input
+                  type="date"
+                  value={startDate}
+                  min={todayDateInputValue()}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  required
+                />
+              </Field>
+              <Field label="إلى تاريخ">
+                <Input
+                  type="date"
+                  value={endDate}
+                  min={startDate || todayDateInputValue()}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  required
+                />
+              </Field>
+            </div>
+            <Field label="السبب (اختياري)">
+              <Textarea rows={3} value={reason} onChange={(e) => setReason(e.target.value)} />
             </Field>
-          </div>
-          <Field label="Reason (optional)">
-            <Textarea rows={3} value={reason} onChange={(e) => setReason(e.target.value)} />
-          </Field>
 
-          <div className="rounded-xl bg-[var(--surface)] px-4 py-3 text-sm">
-            <p>
-              Requested working days: <strong>{days}</strong>
-            </p>
-            <p className="mt-1 text-[var(--muted)]">
-              Remaining for selected type: <strong>{remaining}</strong>
-            </p>
-          </div>
+            <div className="rounded-xl bg-[var(--surface)] px-4 py-3 text-sm">
+              <p>
+                أيام العمل المطلوبة: <strong>{days}</strong>
+              </p>
+              <p className="mt-1 text-[var(--muted)]">
+                المتبقي للنوع المحدد: <strong>{remaining}</strong>
+              </p>
+            </div>
 
-          {error ? <Alert>{error}</Alert> : null}
-          {days <= 0 ? <Alert tone="info">Select a range that includes at least one weekday.</Alert> : null}
-          {days > remaining ? <Alert>Requested days exceed your remaining balance.</Alert> : null}
+            {error ? <Alert>{error}</Alert> : null}
+            {days <= 0 ? <Alert tone="info">اختر نطاقاً يتضمن يوم عمل واحداً على الأقل.</Alert> : null}
+            {days > remaining ? <Alert>الأيام المطلوبة تتجاوز رصيدك المتبقي.</Alert> : null}
 
-          <Button type="submit" disabled={submitting || days <= 0 || days > remaining}>
-            {submitting ? 'Submitting…' : 'Submit request'}
-          </Button>
-        </form>
+            <Button type="submit" disabled={submitting || days <= 0 || days > remaining}>
+              {submitting ? 'جارٍ الإرسال…' : 'إرسال الطلب'}
+            </Button>
+          </form>
+        )}
       </Card>
     </div>
   );

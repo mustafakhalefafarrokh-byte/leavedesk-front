@@ -1,64 +1,25 @@
-# Frontend
+# الواجهة (Frontend)
 
-React UI for LeaveDesk (Admin panel + Employee portal).
+واجهة عربية (RTL) لمكتب الإجازات.
 
-## Stack
-
-- React + TypeScript
-- Vite
-- React Router
-- Tailwind CSS
-
-## Setup
-
-From repo root:
-
-```bash
-npm install --prefix frontend
-npm run dev:frontend
-```
-
-Or inside this folder:
+## التشغيل
 
 ```bash
 npm install
 npm run dev
 ```
 
-App runs at **http://localhost:5173**
+في التطوير، `/api` يُوجَّه إلى `http://localhost:4000`.
 
-In development, `/api` is proxied to the backend (`http://localhost:4000`).
+## النشر على Vercel
 
-## Build
+- لا تستخدم `VITE_API_URL` في الإنتاج
+- `vercel.json` يوجّه `/api/*` إلى Railway
 
-```bash
-npm run build
-```
+راجع [../docs/DEPLOY.md](../docs/DEPLOY.md).
 
-Output: `dist/`
+## المسارات
 
-## Environment
-
-Optional `.env` for production / free host:
-
-```env
-VITE_API_URL=https://your-api.onrender.com
-```
-
-Leave empty for local proxy.
-
-## Structure
-
-```text
-src/
-├── api/           # HTTP client + types
-├── components/    # Shared UI + shell
-├── context/       # Auth state
-├── lib/           # Leave-day helpers
-└── pages/         # Auth, admin, employee screens
-```
-
-## Related
-
-- Backend: [../backend/README.md](../backend/README.md)
-- Docs: [../docs/README.md](../docs/README.md)
+- `/manager/*` — المدير
+- `/branch/*` — رئيس الفرع
+- `/employee/*` — الموظف
