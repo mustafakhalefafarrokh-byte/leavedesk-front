@@ -157,15 +157,23 @@ export function LeaveTypesPage() {
                   <td className="px-4 py-3">{lt.isActive ? 'نشط' : 'معطّل'}</td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap items-center gap-2">
-                      <Button variant="secondary" className="!px-3 !py-2" onClick={() => openEdit(lt)}>
+                      <Button variant="secondary" className="!min-w-[4.5rem] !px-3 !py-2" onClick={() => openEdit(lt)}>
                         تعديل
                       </Button>
-                      <Button variant="ghost" className="!px-3 !py-2" onClick={() => void toggleActive(lt)}>
+                      <Button
+                        variant="secondary"
+                        className={
+                          lt.isActive
+                            ? '!min-w-[4.5rem] !border-amber-200 !bg-amber-50 !px-3 !py-2 !text-amber-900 hover:!bg-amber-100'
+                            : '!min-w-[4.5rem] !border-emerald-200 !bg-emerald-50 !px-3 !py-2 !text-emerald-800 hover:!bg-emerald-100'
+                        }
+                        onClick={() => void toggleActive(lt)}
+                      >
                         {lt.isActive ? 'تعطيل' : 'تفعيل'}
                       </Button>
                       <Button
                         variant="dangerSoft"
-                        className="!px-3 !py-2"
+                        className="!min-w-[4.5rem] !px-3 !py-2"
                         onClick={() => setDeleting(lt)}
                         title="حذف نوع الإجازة"
                         aria-label={`حذف ${lt.typeName}`}
