@@ -54,8 +54,8 @@ export function Button({
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'secondary' | 'danger' | 'ghost' }) {
   const styles = {
-    primary: 'bg-[var(--brand)] text-white hover:bg-[var(--brand-deep)]',
-    secondary: 'bg-white border border-[var(--line)] text-[var(--ink)] hover:bg-[var(--surface)]',
+    primary: 'bg-[var(--brand)] text-[var(--gold-soft)] hover:bg-[var(--brand-mid)]',
+    secondary: 'bg-white border border-[var(--line)] text-[var(--ink)] hover:bg-[var(--brand-soft)]',
     danger: 'bg-[var(--danger)] text-white hover:opacity-90',
     ghost: 'bg-transparent text-[var(--muted)] hover:text-[var(--ink)] hover:bg-black/5',
   }[variant];
@@ -71,7 +71,7 @@ export function Button({
 export function Input({ className = '', ...props }: InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
-      className={`w-full rounded-xl border border-[var(--line)] bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-[var(--brand)] focus:ring-4 focus:ring-[var(--brand-soft)] ${className}`}
+      className={`w-full rounded-xl border border-[var(--line)] bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-[var(--brand-mid)] focus:ring-4 focus:ring-[var(--gold-soft)] ${className}`}
       {...props}
     />
   );
@@ -80,7 +80,7 @@ export function Input({ className = '', ...props }: InputHTMLAttributes<HTMLInpu
 export function Select({ className = '', children, ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <select
-      className={`w-full rounded-xl border border-[var(--line)] bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-[var(--brand)] focus:ring-4 focus:ring-[var(--brand-soft)] ${className}`}
+      className={`w-full rounded-xl border border-[var(--line)] bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-[var(--brand-mid)] focus:ring-4 focus:ring-[var(--gold-soft)] ${className}`}
       {...props}
     >
       {children}
@@ -91,7 +91,7 @@ export function Select({ className = '', children, ...props }: SelectHTMLAttribu
 export function Textarea({ className = '', ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
     <textarea
-      className={`w-full rounded-xl border border-[var(--line)] bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-[var(--brand)] focus:ring-4 focus:ring-[var(--brand-soft)] ${className}`}
+      className={`w-full rounded-xl border border-[var(--line)] bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-[var(--brand-mid)] focus:ring-4 focus:ring-[var(--gold-soft)] ${className}`}
       {...props}
     />
   );

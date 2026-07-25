@@ -36,6 +36,9 @@ export function ChangePasswordPage() {
 
   return (
     <div className="mx-auto max-w-lg px-4 py-10">
+      <div className="mb-4 flex justify-center">
+        <img src="/brand/syria-emblem.png" alt="" className="h-14 w-14 object-contain" />
+      </div>
       <PageHeader title="تحديث كلمة المرور" subtitle="يجب تعيين كلمة مرور جديدة قبل المتابعة." />
       <Card>
         <form className="space-y-4" onSubmit={onSubmit}>

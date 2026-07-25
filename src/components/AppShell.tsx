@@ -31,12 +31,27 @@ export function AppShell({ role }: { role: Role }) {
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-40 border-b border-[var(--line)] bg-white/85 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b border-[var(--line)] bg-white/90 backdrop-blur">
+        <div className="border-b border-[var(--gold)]/30 bg-[var(--brand)] text-[var(--gold-soft)]">
+          <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2">
+            <img src="/brand/syria-emblem.png" alt="" className="h-8 w-8 object-contain" />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold">الجهاز المركزي للرقابة المالية</p>
+              <p className="truncate text-[10px] tracking-wide text-[var(--gold)]">
+                CENTRAL ORGANIZATION FOR FINANCIAL CONTROL
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="h-display text-xl text-[var(--brand-deep)]">مكتب الإجازات</p>
-              <p className="text-xs text-[var(--muted)]">{roleLabel[role]}</p>
+            <div className="brand-mark">
+              <img src="/brand/syria-emblem.png" alt="شعار" />
+              <div>
+                <p className="h-display text-lg text-[var(--brand-deep)]">نظام الإجازات</p>
+                <p className="text-xs text-[var(--muted)]">{roleLabel[role]}</p>
+              </div>
             </div>
             <Button variant="ghost" className="md:hidden" onClick={() => void logout()}>
               خروج
