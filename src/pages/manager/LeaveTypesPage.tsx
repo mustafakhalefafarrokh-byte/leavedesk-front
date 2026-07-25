@@ -71,20 +71,38 @@ export function LeaveTypesPage() {
 
   async function toggleActive(lt: LeaveType) {
     setError('');
+    setSuccess('');
     try {
-      if (lt.isActive) {
-        await api(`/api/leave-types/${lt.id}`, { method: 'DELETE' });
-        setSuccess('تم تعطيل نوع الإجازة');
-      } else {
-        await api(`/api/leave-types/${lt.id}`, {
-          method: 'PATCH',
-          body: JSON.stringify({ isActive: true }),
-        });
-        setSuccess('تم تفعيل نوع الإجازة');
-      }
+      await api(`/api/leave-types/${lt.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ isActive: !lt.isActive }),
+      });
+      setSuccess(lt.isActive ? 'تم تعطيل نوع الإجازة' : 'تم تفعيل نوع الإجازة');
       await load();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'فشل التحديث');
+    }
+  }
+
+  async function removeType(lt: LeaveType) {
+    if (
+      !confirm(
+        `هل تريد حذف «${lt.typeName}»؟\nإن وُجدت طلبات أو أرصدة مستخدمة سيتم التعطيل فقط للحفاظ على السجل.`,
+      )
+    ) {
+      return;
+    }
+    setError('');
+    setSuccess('');
+    try {
+      const result = await api<{ deleted: boolean; disabled?: boolean; message?: string }>(
+        `/api/leave-types/${lt.id}`,
+        { method: 'DELETE' },
+      );
+      setSuccess(result.message ?? (result.deleted ? 'تم الحذف' : 'تم التعطيل'));
+      await load();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'فشل الحذف');
     }
   }
 
@@ -94,7 +112,7 @@ export function LeaveTypesPage() {
     <div>
       <PageHeader
         title="أنواع الإجازات"
-        subtitle="يُنشئها المدير فقط. لا تُمنح تلقائياً للموظفين — تُخصَّص عند إضافة الموظف."
+        subtitle="يُنشئها المدير فقط. الحذف النهائي متاح إن لم تُستخدم؛ وإلا يُعطَّل النوع."
         action={<Button onClick={openCreate}>إضافة نوع</Button>}
       />
       {error ? (
@@ -134,6 +152,9 @@ export function LeaveTypesPage() {
                       </Button>
                       <Button variant="ghost" onClick={() => void toggleActive(lt)}>
                         {lt.isActive ? 'تعطيل' : 'تفعيل'}
+                      </Button>
+                      <Button variant="danger" onClick={() => void removeType(lt)}>
+                        حذف
                       </Button>
                     </div>
                   </td>
