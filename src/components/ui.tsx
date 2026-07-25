@@ -52,19 +52,37 @@ export function Button({
   variant = 'primary',
   className = '',
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'secondary' | 'danger' | 'ghost' }) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: 'primary' | 'secondary' | 'danger' | 'dangerSoft' | 'ghost';
+}) {
   const styles = {
     primary: 'bg-[var(--brand)] text-[var(--gold-soft)] hover:bg-[var(--brand-mid)]',
     secondary: 'bg-white border border-[var(--line)] text-[var(--ink)] hover:bg-[var(--brand-soft)]',
     danger: 'bg-[var(--danger)] text-white hover:opacity-90',
+    dangerSoft:
+      'border border-red-200 bg-red-50/80 text-red-700 hover:border-red-300 hover:bg-red-100',
     ghost: 'bg-transparent text-[var(--muted)] hover:text-[var(--ink)] hover:bg-black/5',
   }[variant];
 
   return (
     <button
-      className={`inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${styles} ${className}`}
+      className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${styles} ${className}`}
       {...props}
     />
+  );
+}
+
+export function TrashIcon({ className = 'h-4 w-4' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 

@@ -1,7 +1,17 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { api, ApiError } from '../../api/client';
 import type { LeaveType } from '../../api/types';
-import { Alert, Button, EmptyState, Field, Input, Modal, PageHeader, Spinner } from '../../components/ui';
+import {
+  Alert,
+  Button,
+  EmptyState,
+  Field,
+  Input,
+  Modal,
+  PageHeader,
+  Spinner,
+  TrashIcon,
+} from '../../components/ui';
 
 export function LeaveTypesPage() {
   const [types, setTypes] = useState<LeaveType[]>([]);
@@ -12,6 +22,8 @@ export function LeaveTypesPage() {
   const [editing, setEditing] = useState<LeaveType | null>(null);
   const [typeName, setTypeName] = useState('');
   const [defaultDays, setDefaultDays] = useState(10);
+  const [deleting, setDeleting] = useState<LeaveType | null>(null);
+  const [deletingBusy, setDeletingBusy] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -84,25 +96,23 @@ export function LeaveTypesPage() {
     }
   }
 
-  async function removeType(lt: LeaveType) {
-    if (
-      !confirm(
-        `هل تريد حذف «${lt.typeName}»؟\nإن وُجدت طلبات أو أرصدة مستخدمة سيتم التعطيل فقط للحفاظ على السجل.`,
-      )
-    ) {
-      return;
-    }
+  async function confirmDelete() {
+    if (!deleting) return;
     setError('');
     setSuccess('');
+    setDeletingBusy(true);
     try {
       const result = await api<{ deleted: boolean; disabled?: boolean; message?: string }>(
-        `/api/leave-types/${lt.id}`,
+        `/api/leave-types/${deleting.id}`,
         { method: 'DELETE' },
       );
       setSuccess(result.message ?? (result.deleted ? 'تم الحذف' : 'تم التعطيل'));
+      setDeleting(null);
       await load();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'فشل الحذف');
+    } finally {
+      setDeletingBusy(false);
     }
   }
 
@@ -146,15 +156,22 @@ export function LeaveTypesPage() {
                   <td className="px-4 py-3">{lt.defaultDays}</td>
                   <td className="px-4 py-3">{lt.isActive ? 'نشط' : 'معطّل'}</td>
                   <td className="px-4 py-3">
-                    <div className="flex flex-wrap gap-2">
-                      <Button variant="secondary" onClick={() => openEdit(lt)}>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button variant="secondary" className="!px-3 !py-2" onClick={() => openEdit(lt)}>
                         تعديل
                       </Button>
-                      <Button variant="ghost" onClick={() => void toggleActive(lt)}>
+                      <Button variant="ghost" className="!px-3 !py-2" onClick={() => void toggleActive(lt)}>
                         {lt.isActive ? 'تعطيل' : 'تفعيل'}
                       </Button>
-                      <Button variant="danger" onClick={() => void removeType(lt)}>
-                        حذف
+                      <Button
+                        variant="dangerSoft"
+                        className="!px-3 !py-2"
+                        onClick={() => setDeleting(lt)}
+                        title="حذف نوع الإجازة"
+                        aria-label={`حذف ${lt.typeName}`}
+                      >
+                        <TrashIcon />
+                        <span>حذف</span>
                       </Button>
                     </div>
                   </td>
@@ -187,6 +204,29 @@ export function LeaveTypesPage() {
             <Button type="submit">حفظ</Button>
           </div>
         </form>
+      </Modal>
+
+      <Modal open={!!deleting} title="تأكيد الحذف" onClose={() => !deletingBusy && setDeleting(null)}>
+        <div className="space-y-4">
+          <div className="flex items-start gap-3 rounded-xl border border-red-100 bg-red-50/70 px-4 py-3 text-sm text-red-800">
+            <TrashIcon className="mt-0.5 h-5 w-5 shrink-0" />
+            <div>
+              <p className="font-semibold">حذف «{deleting?.typeName}»؟</p>
+              <p className="mt-1 text-red-700/90">
+                إن وُجدت طلبات أو أرصدة مستخدمة سيتم تعطيل النوع فقط للحفاظ على السجل التاريخي.
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="secondary" disabled={deletingBusy} onClick={() => setDeleting(null)}>
+              إلغاء
+            </Button>
+            <Button type="button" variant="dangerSoft" disabled={deletingBusy} onClick={() => void confirmDelete()}>
+              <TrashIcon />
+              {deletingBusy ? 'جارٍ الحذف…' : 'تأكيد الحذف'}
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );
