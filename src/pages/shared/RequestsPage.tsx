@@ -179,14 +179,25 @@ export function RequestsPage({
                     </td>
                     <td className="px-4 py-3">
                       {canAct ? (
-                        <div className="flex flex-wrap gap-2">
-                          <Button onClick={() => void approve(r.id)}>اعتماد</Button>
-                          <Button variant="danger" onClick={() => setRejecting(r)}>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Button
+                            className="!min-w-[4.75rem] !border !border-emerald-700 !bg-emerald-700 !px-3 !py-2 !text-white hover:!bg-emerald-800"
+                            onClick={() => void approve(r.id)}
+                          >
+                            اعتماد
+                          </Button>
+                          <Button
+                            variant="dangerSoft"
+                            className="!min-w-[4.75rem] !px-3 !py-2"
+                            onClick={() => setRejecting(r)}
+                          >
                             رفض
                           </Button>
                         </div>
                       ) : (
-                        <span className="text-xs text-[var(--muted)]">عرض فقط</span>
+                        <span className="inline-flex min-w-[4.75rem] items-center justify-center rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-xs font-semibold text-[var(--muted)]">
+                          عرض فقط
+                        </span>
                       )}
                     </td>
                   </tr>
@@ -206,7 +217,7 @@ export function RequestsPage({
             <Button variant="secondary" onClick={() => setRejecting(null)}>
               إلغاء
             </Button>
-            <Button variant="danger" onClick={() => void reject()}>
+            <Button variant="dangerSoft" onClick={() => void reject()}>
               تأكيد الرفض
             </Button>
           </div>
