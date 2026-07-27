@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from './components/AppShell';
 import { RequireAuth } from './components/RequireAuth';
+import { RequirePermission } from './components/RequirePermission';
 import { ChangePasswordPage } from './pages/auth/ChangePasswordPage';
 import { LoginPage } from './pages/auth/LoginPage';
 import { BranchHeadsPage } from './pages/manager/BranchHeadsPage';
@@ -58,7 +59,7 @@ export default function App() {
           <Route path="/manager/employees" element={<EmployeesPage detailBase="/manager/employees" />} />
           <Route
             path="/manager/employees/:id"
-            element={<EmployeeDetailPage listPath="/manager/employees" />}
+            element={<EmployeeDetailPage listPath="/manager/employees" canEditPermissions />}
           />
           <Route path="/manager/branch-heads" element={<BranchHeadsPage />} />
           <Route path="/manager/leave-types" element={<LeaveTypesPage />} />
@@ -87,7 +88,7 @@ export default function App() {
           <Route path="/branch/employees" element={<EmployeesPage detailBase="/branch/employees" />} />
           <Route
             path="/branch/employees/:id"
-            element={<EmployeeDetailPage listPath="/branch/employees" />}
+            element={<EmployeeDetailPage listPath="/branch/employees" canEditPermissions />}
           />
         </Route>
       </Route>
@@ -97,6 +98,35 @@ export default function App() {
           <Route path="/employee" element={<EmployeeDashboard />} />
           <Route path="/employee/requests/new" element={<NewRequestPage />} />
           <Route path="/employee/requests" element={<MyRequestsPage />} />
+
+          <Route
+            element={
+              <RequirePermission anyOf={['view_team_requests', 'approve_reject_requests']} />
+            }
+          >
+            <Route
+              path="/employee/team/requests"
+              element={
+                <RequestsPage
+                  title="طلبات الفريق"
+                  subtitle="عرض طلبات موظفي مديرك (حسب الصلاحيات الممنوحة لك)."
+                  endpoint="/api/leave-requests/team"
+                  allowActions
+                />
+              }
+            />
+          </Route>
+
+          <Route element={<RequirePermission anyOf={['manage_employees']} />}>
+            <Route
+              path="/employee/team/employees"
+              element={<EmployeesPage detailBase="/employee/team/employees" />}
+            />
+            <Route
+              path="/employee/team/employees/:id"
+              element={<EmployeeDetailPage listPath="/employee/team/employees" />}
+            />
+          </Route>
         </Route>
       </Route>
 

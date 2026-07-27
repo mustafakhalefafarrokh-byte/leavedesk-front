@@ -1,6 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { api, ApiError } from '../../api/client';
+import { api, ApiError, downloadFile } from '../../api/client';
 import type { Employee, LeaveRequest } from '../../api/types';
+import { useAuth } from '../../context/AuthContext';
+import { canApproveRequests } from '../../lib/permissions';
 import {
   Alert,
   Button,
@@ -26,6 +28,8 @@ export function RequestsPage({
   endpoint: '/api/leave-requests/team' | '/api/leave-requests/all';
   allowActions: boolean;
 }) {
+  const { user } = useAuth();
+  const canActGlobal = allowActions && canApproveRequests(user);
   const [requests, setRequests] = useState<LeaveRequest[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [status, setStatus] = useState('');
@@ -34,21 +38,27 @@ export function RequestsPage({
   const [to, setTo] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [exporting, setExporting] = useState(false);
   const [rejecting, setRejecting] = useState<LeaveRequest | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
+
+  function queryString() {
+    const params = new URLSearchParams();
+    if (status) params.set('status', status);
+    if (userId) params.set('userId', userId);
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+    const qs = params.toString();
+    return qs ? `?${qs}` : '';
+  }
 
   async function load() {
     setLoading(true);
     setError('');
     try {
-      const params = new URLSearchParams();
-      if (status) params.set('status', status);
-      if (userId) params.set('userId', userId);
-      if (from) params.set('from', from);
-      if (to) params.set('to', to);
-      const qs = params.toString();
+      const qs = queryString();
       const [reqData, empData] = await Promise.all([
-        api<{ leaveRequests: LeaveRequest[] }>(`${endpoint}${qs ? `?${qs}` : ''}`),
+        api<{ leaveRequests: LeaveRequest[] }>(`${endpoint}${qs}`),
         api<{ employees: Employee[] }>('/api/employees').catch(() => ({ employees: [] as Employee[] })),
       ]);
       setRequests(reqData.leaveRequests);
@@ -67,6 +77,22 @@ export function RequestsPage({
   function onFilter(e: FormEvent) {
     e.preventDefault();
     void load();
+  }
+
+  async function onExport() {
+    setExporting(true);
+    setError('');
+    try {
+      const filename =
+        endpoint === '/api/leave-requests/all'
+          ? 'leave-requests-all.xlsx'
+          : 'leave-requests-team.xlsx';
+      await downloadFile(`${endpoint}/export${queryString()}`, filename);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'فشل التصدير');
+    } finally {
+      setExporting(false);
+    }
   }
 
   async function approve(id: string) {
@@ -96,7 +122,15 @@ export function RequestsPage({
 
   return (
     <div>
-      <PageHeader title={title} subtitle={subtitle} />
+      <PageHeader
+        title={title}
+        subtitle={subtitle}
+        action={
+          <Button variant="secondary" disabled={exporting} onClick={() => void onExport()}>
+            {exporting ? 'جارٍ التصدير…' : 'تصدير Excel'}
+          </Button>
+        }
+      />
       {error ? (
         <div className="mb-4">
           <Alert>{error}</Alert>
@@ -149,6 +183,7 @@ export function RequestsPage({
             <thead className="border-b border-[var(--line)] bg-[var(--surface)] text-[var(--muted)]">
               <tr>
                 <th className="px-4 py-3 font-medium">الموظف</th>
+                <th className="px-4 py-3 font-medium">تاريخ الطلب</th>
                 <th className="px-4 py-3 font-medium">النوع</th>
                 <th className="px-4 py-3 font-medium">التواريخ</th>
                 <th className="px-4 py-3 font-medium">الأيام</th>
@@ -158,13 +193,17 @@ export function RequestsPage({
             </thead>
             <tbody>
               {requests.map((r) => {
-                const canAct = allowActions && (r.canReview ?? true) && r.status === 'pending';
+                const canAct =
+                  canActGlobal && (r.canReview ?? true) && r.status === 'pending';
                 return (
                   <tr key={r.id} className="border-b border-[var(--line)] last:border-0 align-top">
                     <td className="px-4 py-3">
                       <p className="font-medium">{r.employeeName}</p>
-                      <p className="text-xs text-[var(--muted)]">{r.employeeEmail}</p>
+                      <p className="text-xs text-[var(--muted)]" dir="ltr">
+                        {r.employeeUsername || r.employeeEmail || ''}
+                      </p>
                     </td>
+                    <td className="px-4 py-3">{r.requestDate ?? r.createdAt?.slice(0, 10)}</td>
                     <td className="px-4 py-3">{r.leaveTypeName}</td>
                     <td className="px-4 py-3">
                       {r.startDate} ← {r.endDate}

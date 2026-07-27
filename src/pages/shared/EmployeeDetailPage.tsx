@@ -1,14 +1,23 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api, ApiError } from '../../api/client';
-import type { Employee, LeaveType } from '../../api/types';
-import { Alert, Button, Card, PageHeader, Spinner } from '../../components/ui';
+import type { Employee, LeaveType, PermissionCatalogItem, PermissionCode } from '../../api/types';
+import { statusLabel } from '../../lib/labels';
+import { Alert, Button, Card, PageHeader, Spinner, StatusBadge } from '../../components/ui';
 
-export function EmployeeDetailPage({ listPath }: { listPath: string }) {
+export function EmployeeDetailPage({
+  listPath,
+  canEditPermissions = false,
+}: {
+  listPath: string;
+  canEditPermissions?: boolean;
+}) {
   const { id } = useParams();
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>([]);
+  const [catalog, setCatalog] = useState<PermissionCatalogItem[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+  const [selectedPerms, setSelectedPerms] = useState<PermissionCode[]>([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [tempPassword, setTempPassword] = useState('');
@@ -24,7 +33,17 @@ export function EmployeeDetailPage({ listPath }: { listPath: string }) {
       ]);
       setEmployee(empData.employee);
       setLeaveTypes(typesData.leaveTypes);
-      setSelectedTypes(empData.employee.leaveTypeIds ?? empData.employee.balances?.map((b) => b.leaveTypeId) ?? []);
+      setSelectedTypes(
+        empData.employee.leaveTypeIds ?? empData.employee.balances?.map((b) => b.leaveTypeId) ?? [],
+      );
+      setSelectedPerms(empData.employee.permissions ?? []);
+
+      if (canEditPermissions) {
+        const permData = await api<{ permissions: PermissionCatalogItem[] }>(
+          '/api/employees/permissions-catalog',
+        );
+        setCatalog(permData.permissions);
+      }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'فشل تحميل الموظف');
     } finally {
@@ -65,6 +84,22 @@ export function EmployeeDetailPage({ listPath }: { listPath: string }) {
     }
   }
 
+  async function savePermissions() {
+    if (!id) return;
+    setError('');
+    setSuccess('');
+    try {
+      await api(`/api/employees/${id}/permissions`, {
+        method: 'PUT',
+        body: JSON.stringify({ permissions: selectedPerms }),
+      });
+      setSuccess('تم تحديث الصلاحيات');
+      await load();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'فشل حفظ الصلاحيات');
+    }
+  }
+
   if (loading) return <Spinner />;
   if (!employee) return <Alert>{error || 'الموظف غير موجود'}</Alert>;
 
@@ -72,7 +107,7 @@ export function EmployeeDetailPage({ listPath }: { listPath: string }) {
     <div>
       <PageHeader
         title={employee.name}
-        subtitle={employee.email}
+        subtitle={`${employee.username}${employee.email ? ` · ${employee.email}` : ''}`}
         action={
           <Link to={listPath} className="text-sm font-semibold text-[var(--brand)]">
             ← العودة للموظفين
@@ -131,7 +166,35 @@ export function EmployeeDetailPage({ listPath }: { listPath: string }) {
         </Button>
       </Card>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      {canEditPermissions ? (
+        <Card className="mb-6">
+          <p className="mb-1 font-semibold">صلاحيات التفويض</p>
+          <p className="mb-3 text-sm text-[var(--muted)]">
+            تُمنح فقط لموظفيك التابعين لك مباشرة. يمكن تفعيلها أو إيقافها في أي وقت.
+          </p>
+          <div className="space-y-2">
+            {catalog.map((p) => (
+              <label key={p.code} className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={selectedPerms.includes(p.code)}
+                  onChange={() =>
+                    setSelectedPerms((prev) =>
+                      prev.includes(p.code) ? prev.filter((x) => x !== p.code) : [...prev, p.code],
+                    )
+                  }
+                />
+                <span>{p.labelAr}</span>
+              </label>
+            ))}
+          </div>
+          <Button className="mt-4" onClick={() => void savePermissions()}>
+            حفظ الصلاحيات
+          </Button>
+        </Card>
+      ) : null}
+
+      <div className="mb-8 grid gap-4 md:grid-cols-2">
         {(employee.balances ?? []).map((b) => (
           <Card key={b.id}>
             <p className="font-semibold">{b.leaveTypeName}</p>
@@ -152,6 +215,48 @@ export function EmployeeDetailPage({ listPath }: { listPath: string }) {
           </Card>
         ))}
       </div>
+
+      <Card>
+        <p className="mb-3 font-semibold">سجل طلبات الإجازة</p>
+        {(employee.leaveRequests ?? []).length === 0 ? (
+          <p className="text-sm text-[var(--muted)]">لا توجد طلبات لهذا الموظف.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-right text-sm">
+              <thead className="border-b border-[var(--line)] text-[var(--muted)]">
+                <tr>
+                  <th className="px-3 py-2 font-medium">تاريخ الطلب</th>
+                  <th className="px-3 py-2 font-medium">النوع</th>
+                  <th className="px-3 py-2 font-medium">الفترة</th>
+                  <th className="px-3 py-2 font-medium">الأيام</th>
+                  <th className="px-3 py-2 font-medium">الحالة</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(employee.leaveRequests ?? []).map((r) => (
+                  <tr key={r.id} className="border-b border-[var(--line)] last:border-0 align-top">
+                    <td className="px-3 py-2">{r.requestDate ?? r.createdAt?.slice(0, 10)}</td>
+                    <td className="px-3 py-2">{r.leaveTypeName}</td>
+                    <td className="px-3 py-2">
+                      {r.startDate} ← {r.endDate}
+                      {r.rejectionReason ? (
+                        <p className="mt-1 text-xs text-red-700">
+                          سبب الرفض: {r.rejectionReason}
+                        </p>
+                      ) : null}
+                    </td>
+                    <td className="px-3 py-2">{r.requestedDays}</td>
+                    <td className="px-3 py-2">
+                      <StatusBadge status={r.status} />
+                      <span className="sr-only">{statusLabel[r.status]}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
     </div>
   );
 }

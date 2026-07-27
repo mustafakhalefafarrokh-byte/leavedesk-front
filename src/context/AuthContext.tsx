@@ -13,7 +13,7 @@ import type { User } from '../api/types';
 type AuthContextValue = {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<User>;
+  login: (username: string, password: string) => Promise<User>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
   setUser: (user: User | null) => void;
@@ -40,10 +40,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void refresh();
   }, [refresh]);
 
-  const login = useCallback(async (email: string, password: string) => {
+  const login = useCallback(async (username: string, password: string) => {
     const data = await api<{ user: User }>('/api/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ username, password }),
     });
     setUser(data.user);
     return data.user;

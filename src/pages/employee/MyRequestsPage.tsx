@@ -64,6 +64,7 @@ export function MyRequestsPage() {
           <table className="min-w-full text-right text-sm">
             <thead className="border-b border-[var(--line)] bg-[var(--surface)] text-[var(--muted)]">
               <tr>
+                <th className="px-4 py-3 font-medium">تاريخ الطلب</th>
                 <th className="px-4 py-3 font-medium">النوع</th>
                 <th className="px-4 py-3 font-medium">التواريخ</th>
                 <th className="px-4 py-3 font-medium">الأيام</th>
@@ -74,6 +75,7 @@ export function MyRequestsPage() {
             <tbody>
               {requests.map((r) => (
                 <tr key={r.id} className="border-b border-[var(--line)] last:border-0 align-top">
+                  <td className="px-4 py-3">{r.requestDate ?? r.createdAt?.slice(0, 10)}</td>
                   <td className="px-4 py-3 font-medium">{r.leaveTypeName}</td>
                   <td className="px-4 py-3">
                     {r.startDate} ← {r.endDate}

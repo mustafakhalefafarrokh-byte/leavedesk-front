@@ -12,6 +12,7 @@ export function EmployeesPage({ detailBase }: { detailBase: string }) {
   const [success, setSuccess] = useState('');
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [tempPassword, setTempPassword] = useState('');
@@ -51,11 +52,17 @@ export function EmployeesPage({ detailBase }: { detailBase: string }) {
     try {
       const data = await api<{ employee: Employee; temporaryPassword: string }>('/api/employees', {
         method: 'POST',
-        body: JSON.stringify({ name, email, leaveTypeIds: selectedTypes }),
+        body: JSON.stringify({
+          name,
+          username,
+          email: email.trim() || undefined,
+          leaveTypeIds: selectedTypes,
+        }),
       });
       setTempPassword(data.temporaryPassword);
       setSuccess(`تم إنشاء ${data.employee.name}. شارك كلمة المرور المؤقتة بأمان.`);
       setName('');
+      setUsername('');
       setEmail('');
       setSelectedTypes([]);
       await load();
@@ -113,6 +120,7 @@ export function EmployeesPage({ detailBase }: { detailBase: string }) {
             <thead className="border-b border-[var(--line)] bg-[var(--surface)] text-[var(--muted)]">
               <tr>
                 <th className="px-4 py-3 font-medium">الاسم</th>
+                <th className="px-4 py-3 font-medium">اسم المستخدم</th>
                 <th className="px-4 py-3 font-medium">البريد</th>
                 <th className="px-4 py-3 font-medium">الحالة</th>
                 <th className="px-4 py-3 font-medium">إجراءات</th>
@@ -122,7 +130,10 @@ export function EmployeesPage({ detailBase }: { detailBase: string }) {
               {employees.map((emp) => (
                 <tr key={emp.id} className="border-b border-[var(--line)] last:border-0">
                   <td className="px-4 py-3 font-medium">{emp.name}</td>
-                  <td className="px-4 py-3">{emp.email}</td>
+                  <td className="px-4 py-3" dir="ltr">
+                    {emp.username}
+                  </td>
+                  <td className="px-4 py-3">{emp.email || '—'}</td>
                   <td className="px-4 py-3">{emp.isActive ? 'نشط' : 'موقوف'}</td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-2">
@@ -149,8 +160,24 @@ export function EmployeesPage({ detailBase }: { detailBase: string }) {
           <Field label="الاسم الكامل">
             <Input value={name} onChange={(e) => setName(e.target.value)} required />
           </Field>
-          <Field label="البريد الإلكتروني">
-            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          <Field label="اسم المستخدم">
+            <Input
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              dir="ltr"
+              className="text-start"
+              placeholder="مثال: ahmad_01"
+            />
+          </Field>
+          <Field label="البريد الإلكتروني (اختياري)">
+            <Input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              dir="ltr"
+              className="text-start"
+            />
           </Field>
           <div>
             <p className="mb-2 text-sm font-medium">أنواع الإجازات المسموحة</p>

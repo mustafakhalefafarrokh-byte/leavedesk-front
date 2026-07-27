@@ -28,3 +28,22 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
   }
   return data as T;
 }
+
+export async function downloadFile(path: string, filename: string) {
+  const res = await fetch(`${API_BASE}${path}`, {
+    credentials: 'include',
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new ApiError((data as { error?: string }).error ?? 'فشل التحميل', res.status);
+  }
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}

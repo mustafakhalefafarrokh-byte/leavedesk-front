@@ -10,6 +10,7 @@ export function BranchHeadsPage() {
   const [success, setSuccess] = useState('');
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [tempPassword, setTempPassword] = useState('');
 
@@ -36,11 +37,16 @@ export function BranchHeadsPage() {
     try {
       const data = await api<{ branchHead: BranchHead; temporaryPassword: string }>('/api/branch-heads', {
         method: 'POST',
-        body: JSON.stringify({ name, email }),
+        body: JSON.stringify({
+          name,
+          username,
+          email: email.trim() || undefined,
+        }),
       });
       setTempPassword(data.temporaryPassword);
       setSuccess(`تم إنشاء ${data.branchHead.name}`);
       setName('');
+      setUsername('');
       setEmail('');
       await load();
     } catch (err) {
@@ -116,6 +122,7 @@ export function BranchHeadsPage() {
             <thead className="border-b border-[var(--line)] bg-[var(--surface)] text-[var(--muted)]">
               <tr>
                 <th className="px-4 py-3 font-medium">الاسم</th>
+                <th className="px-4 py-3 font-medium">اسم المستخدم</th>
                 <th className="px-4 py-3 font-medium">البريد</th>
                 <th className="px-4 py-3 font-medium">الموظفون</th>
                 <th className="px-4 py-3 font-medium">الحالة</th>
@@ -126,7 +133,10 @@ export function BranchHeadsPage() {
               {items.map((bh) => (
                 <tr key={bh.id} className="border-b border-[var(--line)] last:border-0">
                   <td className="px-4 py-3 font-medium">{bh.name}</td>
-                  <td className="px-4 py-3">{bh.email}</td>
+                  <td className="px-4 py-3" dir="ltr">
+                    {bh.username}
+                  </td>
+                  <td className="px-4 py-3">{bh.email || '—'}</td>
                   <td className="px-4 py-3">{bh.employeeCount ?? 0}</td>
                   <td className="px-4 py-3">{bh.isActive ? 'نشط' : 'موقوف'}</td>
                   <td className="px-4 py-3">
@@ -151,8 +161,23 @@ export function BranchHeadsPage() {
           <Field label="الاسم">
             <Input value={name} onChange={(e) => setName(e.target.value)} required />
           </Field>
-          <Field label="البريد الإلكتروني">
-            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          <Field label="اسم المستخدم">
+            <Input
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              dir="ltr"
+              className="text-start"
+            />
+          </Field>
+          <Field label="البريد الإلكتروني (اختياري)">
+            <Input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              dir="ltr"
+              className="text-start"
+            />
           </Field>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="secondary" onClick={() => setOpen(false)}>

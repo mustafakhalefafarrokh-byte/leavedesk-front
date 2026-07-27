@@ -1,33 +1,49 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { roleLabel } from '../lib/labels';
+import {
+  canManageEmployees,
+  canViewTeamRequests,
+} from '../lib/permissions';
 import { Button } from './ui';
 import type { Role } from '../api/types';
 
-const linksByRole: Record<Role, { to: string; label: string; end?: boolean }[]> = {
-  manager: [
-    { to: '/manager', label: 'لوحة التحكم', end: true },
-    { to: '/manager/requests-all', label: 'كل الطلبات' },
-    { to: '/manager/requests-team', label: 'طلبات فريقي' },
-    { to: '/manager/employees', label: 'موظفيّ' },
-    { to: '/manager/branch-heads', label: 'رؤساء الفروع' },
-    { to: '/manager/leave-types', label: 'أنواع الإجازات' },
-  ],
-  branch_head: [
-    { to: '/branch', label: 'لوحة التحكم', end: true },
-    { to: '/branch/requests', label: 'طلبات الإجازات' },
-    { to: '/branch/employees', label: 'الموظفون' },
-  ],
-  employee: [
+function linksFor(role: Role, userPermissions: ReturnType<typeof useAuth>['user']) {
+  if (role === 'manager') {
+    return [
+      { to: '/manager', label: 'لوحة التحكم', end: true },
+      { to: '/manager/requests-all', label: 'كل الطلبات' },
+      { to: '/manager/requests-team', label: 'طلبات فريقي' },
+      { to: '/manager/employees', label: 'موظفيّ' },
+      { to: '/manager/branch-heads', label: 'رؤساء الفروع' },
+      { to: '/manager/leave-types', label: 'أنواع الإجازات' },
+    ];
+  }
+  if (role === 'branch_head') {
+    return [
+      { to: '/branch', label: 'لوحة التحكم', end: true },
+      { to: '/branch/requests', label: 'طلبات الإجازات' },
+      { to: '/branch/employees', label: 'الموظفون' },
+    ];
+  }
+
+  const links = [
     { to: '/employee', label: 'رصيدي', end: true },
     { to: '/employee/requests/new', label: 'طلب جديد' },
     { to: '/employee/requests', label: 'طلباتي' },
-  ],
-};
+  ];
+  if (canViewTeamRequests(userPermissions)) {
+    links.push({ to: '/employee/team/requests', label: 'طلبات الفريق', end: false });
+  }
+  if (canManageEmployees(userPermissions)) {
+    links.push({ to: '/employee/team/employees', label: 'موظفو الفريق', end: false });
+  }
+  return links;
+}
 
 export function AppShell({ role }: { role: Role }) {
   const { user, logout } = useAuth();
-  const links = linksByRole[role];
+  const links = linksFor(role, user);
 
   return (
     <div className="min-h-screen">
@@ -78,7 +94,9 @@ export function AppShell({ role }: { role: Role }) {
           <div className="hidden items-center gap-3 md:flex">
             <div className="text-left">
               <p className="text-sm font-semibold">{user?.name}</p>
-              <p className="text-xs text-[var(--muted)]">{user?.email}</p>
+              <p className="text-xs text-[var(--muted)]" dir="ltr">
+                {user?.username}
+              </p>
             </div>
             <Button variant="secondary" onClick={() => void logout()}>
               تسجيل الخروج

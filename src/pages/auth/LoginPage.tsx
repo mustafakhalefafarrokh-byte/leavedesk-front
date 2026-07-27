@@ -8,7 +8,7 @@ import { Alert, Button, Field, Input } from '../../components/ui';
 export function LoginPage() {
   const { user, loading, login } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -23,7 +23,7 @@ export function LoginPage() {
     setError('');
     setSubmitting(true);
     try {
-      const loggedIn = await login(email, password);
+      const loggedIn = await login(username, password);
       if (loggedIn.mustChangePassword) {
         navigate('/change-password');
       } else {
@@ -39,7 +39,6 @@ export function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-8">
       <div className="mx-auto grid w-full max-w-5xl overflow-hidden rounded-3xl border border-[var(--line)] bg-white shadow-[var(--shadow)] lg:grid-cols-2">
-        {/* Form — appears on the start side in RTL */}
         <form onSubmit={onSubmit} className="order-2 flex flex-col justify-center px-6 py-10 md:px-10 lg:order-1">
           <div className="mx-auto w-full max-w-sm">
             <div className="mb-8 flex flex-col items-center text-center">
@@ -49,13 +48,13 @@ export function LoginPage() {
             </div>
 
             <div className="space-y-4 text-start">
-              <Field label="البريد الإلكتروني">
+              <Field label="اسم المستخدم">
                 <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   required
-                  autoComplete="email"
+                  autoComplete="username"
                   dir="ltr"
                   className="text-start"
                 />
@@ -79,7 +78,6 @@ export function LoginPage() {
           </div>
         </form>
 
-        {/* Brand panel — solid green + controlled text (no cropped banner text) */}
         <aside className="login-hero order-1 relative flex min-h-[280px] flex-col justify-between overflow-hidden p-6 md:p-8 lg:order-2 lg:min-h-[520px]">
           <img
             src="/brand/cofc-banner.jpg"
