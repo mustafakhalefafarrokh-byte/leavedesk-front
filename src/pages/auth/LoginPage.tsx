@@ -57,6 +57,7 @@ export function LoginPage() {
                   autoComplete="username"
                   dir="ltr"
                   className="text-start"
+                  placeholder="مثال: manager"
                 />
               </Field>
               <Field label="كلمة المرور">
